@@ -1,0 +1,27 @@
+every single expression should have at least one (or more) threads of data that flow through it.
+every expr should have a single example of what it is stored in source control.
+
+you garden/edit/maintain/cultivate the tree of data.
+  when code is changed, and the existing data tree becomes obsolute, you trim the branches of the data
+  when new code appears, you grow the data thread along the new exprs in a stepper
+
+as you edit the program, you use a web/humble ui to step through the changes and update the tree.
+
+the data is integrated with repl, so that as you are writing code, you can see the value of any expr (nrepl protocol extension/similar).
+
+the data makes it easy for new people to understand the program, examples for everything. (that new person could be you in the future).
+   means you can confidently make changes to the code with only 
+        checking the data tree,
+   you don't have to check the integration tests to know if your code breaks anything for small changes.
+
+each thread of data going through system could represent a "user story" kind of. or maybe "request story" as used in scrum terms.
+
+maintain as part of repo (in something similar to .clojure-lsp), but keep it in source control. 
+
+extensions:
+
+could potentially be used by tooling to
+  * automatically generate specs
+  * generate type definitions of programs. (do something PL-ish)
+  * give good examples and integrate with a LMM (github copilot?) to speed up several different parts of process.
+  * given data (maintained/cultivated/real, not LLM generated), and existing code, LLM could generate new snippets, and UI could click them/test populate them for you.
