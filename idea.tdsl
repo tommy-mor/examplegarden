@@ -25,3 +25,17 @@ could potentially be used by tooling to
   * generate type definitions of programs. (do something PL-ish)
   * give good examples and integrate with a LMM (github copilot?) to speed up several different parts of process.
   * given data (maintained/cultivated/real, not LLM generated), and existing code, LLM could generate new snippets, and UI could click them/test populate them for you.
+
+--- 
+Flow(?):
+1. I open a clojure file. Let's say it contains `(fn map1 [a b c] (map add1 (list a b c)))`.
+2. The editor generates a tree of examples for every subexpression, where the values generated are example arguments to the function. This looks like the following:
+
+(fn map1 [a b c] (map add1 (list a b c))) -> (values 0 1 2).
+(map add1 (list a b c)) -> (values 0 1 2). The same variables are free.
+map add1 (list a b c) -> (add1 0), (add1 1), (add1 2). We invoke the function across all of the arguments.
+
+1. I edit Clojure code; let's say I've gone from `(map add1 (list a b c))` to `(map sub1 (list a b c)) for some a, b and c.
+2. The editor picks up on some change and identifies the AST subexpression that has changed.
+3. The editor, through some GUI, asks you whether I'd like to change the examples relevant to that subexpression. Here, it's concerned with the three add1 expressions on L35 above.
+4. I manually update examples through the subtree to match the new fn definition.
