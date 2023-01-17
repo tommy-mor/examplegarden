@@ -1,13 +1,26 @@
-every single expression should have at least one (or more) threads of data that flow through it.
-every expr should have a single example of what it is stored in source control.
+every expr should have at least a single example of a value that is likely to inhabit it stored in source control.
+this example value should be inspecatble in the editor, and can serve many of the same roles as types (hover for type -> hover for canonical example)
 
-you garden/edit/maintain/cultivate the tree of data.
-  when code is changed, and the existing data tree becomes obsolute, you trim the branches of the data
+the types flowing through a program is a mathematical structure/ast which mirrors/is sibling to your program.
+the type system creates and recreates this mirror structure in memory automatically by using type rules to step inference rules through your AST.
+
+where a type system maintains its tree ephemerally(in memory) using a type checking program,
+       expgargden suggests that a user can maintain/prune/grow it concretely(serialized in source control) using a user interface/instrumentation.
+       
+ 
+a user must then garden/edit/maintain/cultivate the tree of data.
+  when code is changed, and the existing data tree becomes obsolete, you trim the branches of the data.
+     in the source ``(str database-url ":" port )`` => ``(str (get-proxy-database-from-config) ":" port)``
+              now, the value stored in the garden for the expression ``database-url`` is a dead branch, and needs to be pruned/replaced.
+              
   when new code appears, you grow the data thread along the new exprs in a stepper
+              the user must now use the user-interface to (step through/paste in/gather from instrumentation) a value for ``(get-proxy-database-from-config)``
 
 as you edit the program, you use a web/humble ui to step through the changes and update the tree.
 
 the data is integrated with repl, so that as you are writing code, you can see the value of any expr (nrepl protocol extension/similar).
+   hover for example, not hover for type
+   
 
 the data makes it easy for new people to understand the program, examples for everything. (that new person could be you in the future).
    means you can confidently make changes to the code with only 
@@ -18,10 +31,13 @@ each thread of data going through system could represent a "user story" kind of.
 
 maintain as part of repo (in something similar to .clojure-lsp), but keep it in source control. 
 
+An example of data often includes more information than the just the type. An example string is much better than a java.lang.String hint.
+
 extensions:
 
 could potentially be used by tooling to
   * automatically generate specs
   * generate type definitions of programs. (do something PL-ish)
-  * give good examples and integrate with a LMM (github copilot?) to speed up several different parts of process.
-  * given data (maintained/cultivated/real, not LLM generated), and existing code, LLM could generate new snippets, and UI could click them/test populate them for you.
+  * github copilot does really well with example data residing in the same buffer as the code I want it to help me with
+    * give good examples and integrate with a LMM (github copilot?) to speed up several different parts of process.
+    * given data (maintained/cultivated/real, not LLM generated), and existing code, LLM could generate new snippets, and UI could click them/test populate them for you.
