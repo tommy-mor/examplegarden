@@ -1,0 +1,5 @@
+.cpcache/
+playground/cpcache/
+
+.nrepl-port
+playground/.nrepl-port
