@@ -39,6 +39,8 @@
   #record (test-function 8 (+ 3 3))
   #record (+ 5 5)
   (test-function 10 3)
+
+  (+ 3 3)
   
   )
 

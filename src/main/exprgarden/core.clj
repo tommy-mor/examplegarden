@@ -13,6 +13,7 @@
 
 (defn record-and-eval [msg form]
   (println "recording :3")
+  (spit "msg.edn" msg)
   (comment (spit "form.edn" form)
            (def form (read-string (slurp "playground/form.edn"))))
   
@@ -25,22 +26,39 @@
     (swap! database assoc [(.getName nss) (first form)] (map eval (rest form)))
     (eval form)))
 
-(defn maybe-record [h msg]
-  (clojure.pprint/pprint (dissoc msg :transport :nrepl.middleware.print/print-fn))
-  (let [is-record? (atom false)
+(defn remember-and-eval [msg form]
+  (println "remembering")
+  (eval form))
+
+(defn has-tag [tag-symbol msg]
+  (let [found? (atom false)
         form
         (binding [*ns* (find-ns (symbol (or (:ns msg) "user")))
-                  *data-readers* (assoc *data-readers* 'record
-                                        (fn [x] (reset! is-record? true) x))]
+                  *data-readers* (assoc *data-readers*
+                                        'record (fn [x] x)
+                                        'remember (fn [x] x)
+                                        tag-symbol (fn [x] (reset! found? true) x))]
           (read-string {:read-cond :allow}
                        (:code msg)))]
-    (if @is-record?
-      (do
-        (println ":333")
-        (t/send (:transport msg)
-                (response-for msg :status :done :value
-                              (pr-str (record-and-eval msg form))) ))
-      (h msg))))
+    {:form form :has-tag? @found?}))
+
+(defn maybe-record [h msg]
+  (clojure.pprint/pprint (dissoc msg :transport :nrepl.middleware.print/print-fn))
+  (let [{record? :has-tag?} (has-tag 'record msg)
+        {remember? :has-tag? form :form} (has-tag 'remember msg)]
+    (cond record?
+          (t/send (:transport msg)
+                  (response-for msg :status :done :value
+                                (pr-str (record-and-eval msg form))) )
+
+          remember?
+          (t/send (:transport msg)
+                  (response-for msg
+                                :status :done
+                                :value (pr-str (remember-and-eval msg form))))
+          
+          :else
+          (h msg))))
 
 (defn current-time
   [h]
