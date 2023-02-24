@@ -31,4 +31,15 @@
       _ (b/write-bencode (:out streams) {"op" "time?" "id" id "session" session})]
   (nrepl/read-reply (:in streams) session id))
 
+(comment
+  #record (+ 3 3)
+  (+ 5 5))
+
+reply
+
+
+
+
+
+
 
