@@ -28,6 +28,11 @@
 
 (defn remember-and-eval [msg form]
   (println "remembering")
+  (spit "msg.edn" msg)
+  (spit "form.edn" form)
+  (def form (read-string (slurp "playground/form.edn")))
+  (def msg (read-string (slurp "playground/msg.edn")))
+  
   (eval form))
 
 (defn has-tag [tag-symbol msg]

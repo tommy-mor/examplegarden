@@ -32,12 +32,13 @@
       _ (b/write-bencode (:out streams) {"op" "time?" "id" id "session" session})]
   (nrepl/read-reply (:in streams) session id))
 
-(defn test-function [a b]
-  (+ a 3))
+#remember (defn test-function [a b]
+            (+ a 3))
 
 (comment
   #record (test-function 8 (+ 3 3))
   #record (+ 5 5)
+  
   (test-function 10 3)
 
   (+ 3 3)
