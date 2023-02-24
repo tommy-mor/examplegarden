@@ -2,15 +2,27 @@
   (:require [nrepl.misc :refer [response-for]  :as misc]
             [nrepl.middleware :as mw]
             [nrepl.transport :as t]
-            [clojure.pprint]))
+            [clojure.pprint]
+            [duratom.core :as duratom]))
 
 (comment "https://nrepl.org/nrepl/design/middleware.html"
          "https://github.com/gfredericks/debug-repl/blob/master/src/com/gfredericks/debug_repl.clj"
          "https://github.com/clojure-emacs/cider-nrepl/blob/1fa95f24d45af4181e5c1ce14bfa5fa97ff3a065/src/cider/nrepl/middleware/debug.clj")
 
+(def database (duratom/duratom :local-file {:file-path ".exprgarden.edn"}))
+
 (defn record-and-eval [msg form]
   (println "recording :3")
-  (binding [*ns* (find-ns (symbol (or (:ns msg) "user")))]
+  (comment (spit "form.edn" form)
+           (def form (read-string (slurp "playground/form.edn"))))
+  
+  (def nss (find-ns (symbol (or (:ns msg) "user"))))
+  
+  (comment (def nss (find-ns 'clojure.string))
+           (.getName nss))
+
+  (binding [*ns* nss]
+    (swap! database assoc [(.getName nss) (first form)] (map eval (rest form)))
     (eval form)))
 
 (defn maybe-record [h msg]
