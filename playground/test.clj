@@ -3,6 +3,7 @@
 
 (require '[babashka.nrepl-client :as nrepl])
 
+
 (defn connect
   [{:keys [host port expr]}]
   (let [s (java.net.Socket. (or host "localhost") (nrepl/coerce-long port))
@@ -31,15 +32,10 @@
       _ (b/write-bencode (:out streams) {"op" "time?" "id" id "session" session})]
   (nrepl/read-reply (:in streams) session id))
 
+(defn test-function [a]
+  (+ a 3))
+
 (comment
-  #record (+ 3 3)
-  (+ 5 5))
-
-reply
-
-
-
-
-
-
-
+  #record (test-function 8)
+  (+ 5 5)
+  (test-function 10))
