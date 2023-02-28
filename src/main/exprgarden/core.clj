@@ -28,12 +28,20 @@
 
 (defn remember-and-eval [msg form]
   (println "remembering")
-  (spit "msg.edn" msg)
   (spit "form.edn" form)
-  (def form (read-string (slurp "playground/form.edn")))
-  (def msg (read-string (slurp "playground/msg.edn")))
-  
-  (eval form))
+  (def form (read-string (slurp "form.edn")))
+  ;; ASSUMING THAT THERE IS NO DOCSTRING! ~= ASSUMING SIMPLEST DEFN FORM
+  (assert (= (first form) 'defn))
+  (def fname (second form))
+  (def namespace (symbol (or "exprgarden.core" #_(:ns msg))))
+
+  (def binding-values (-> database deref (get [namespace fname])))
+  (def arglist (nth form 2))
+  (def bindings (->> (interleave arglist binding-values)
+                     vec))
+  (def body (drop 3 form))
+
+  (eval `(let ~bindings ~@body )))
 
 (defn has-tag [tag-symbol msg]
   (let [found? (atom false)
@@ -51,6 +59,7 @@
   (clojure.pprint/pprint (dissoc msg :transport :nrepl.middleware.print/print-fn))
   (let [{record? :has-tag?} (has-tag 'record msg)
         {remember? :has-tag? form :form} (has-tag 'remember msg)]
+    
     (cond record?
           (t/send (:transport msg)
                   (response-for msg :status :done :value
@@ -74,6 +83,13 @@
 
       
       (h msg))))
+
+(defn fubar [a b c]
+  (+ a b c))
+
+(comment
+  (fubar 3 2 1)
+  (+ 3 3))
 
 (mw/set-descriptor!
  #'current-time
