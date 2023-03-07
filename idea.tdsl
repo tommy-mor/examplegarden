@@ -33,6 +33,9 @@ maintain as part of repo (in something similar to .clojure-lsp), but keep it in 
 
 An example of data often includes more information than the just the type. An example string is much better than a java.lang.String hint.
 
+This also adds friction to impure functions, and makes pure functions be much more satisfying. so it encourages healthy code.
+   like the talk by the jolly metosin man who said to not litter your side effects all over the place
+
 extensions:
 
 could potentially be used by tooling to
