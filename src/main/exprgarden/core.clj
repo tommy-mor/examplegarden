@@ -9,6 +9,7 @@
          "https://github.com/gfredericks/debug-repl/blob/master/src/com/gfredericks/debug_repl.clj"
          "https://github.com/clojure-emacs/cider-nrepl/blob/1fa95f24d45af4181e5c1ce14bfa5fa97ff3a065/src/cider/nrepl/middleware/debug.clj")
 
+
 (def database (duratom/duratom :local-file {:file-path ".exprgarden.edn"}))
 
 (defn record-and-eval [msg form]
@@ -49,7 +50,7 @@
         (binding [*ns* (find-ns (symbol (or (:ns msg) "user")))
                   *data-readers* (assoc *data-readers*
                                         'record (fn [x] x)
-                                        'remember (fn [x] x)
+                                        'recall (fn [x] x)
                                         tag-symbol (fn [x] (reset! found? true) x))]
           (read-string {:read-cond :allow}
                        (:code msg)))]
@@ -58,14 +59,14 @@
 (defn maybe-record [h msg]
   (clojure.pprint/pprint (dissoc msg :transport :nrepl.middleware.print/print-fn))
   (let [{record? :has-tag?} (has-tag 'record msg)
-        {remember? :has-tag? form :form} (has-tag 'remember msg)]
+        {recall? :has-tag? form :form} (has-tag 'recall msg)]
     
     (cond record?
           (t/send (:transport msg)
                   (response-for msg :status :done :value
                                 (pr-str (record-and-eval msg form))) )
 
-          remember?
+          recall?
           (t/send (:transport msg)
                   (response-for msg
                                 :status :done
@@ -74,21 +75,34 @@
           :else
           (h msg))))
 
+(defn maybe-info [h msg]
+  (println "info intercepted")
+  (if false
+    (t/send (:transport msg)
+            (response-for msg))
+
+    (h msg)))
+
 (defn current-time
   [h]
   (fn [{:keys [op transport] :as msg}]
     (case op
       "eval" (maybe-record h msg)
+      "info" (maybe-info h msg)
 
 
       
       (h msg))))
 
 (defn fubar [a b c]
-  (+ a b c))
+  (+ a b (+ a (* b b))))
 
 (comment
-  (fubar 3 2 1)
+  (slurp "https://google.com"))
+
+(comment
+  (fubar 4 2 1)
+
   (+ 3 3))
 
 (mw/set-descriptor!
