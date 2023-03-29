@@ -3,6 +3,8 @@
             [nrepl.middleware :as mw]
             [nrepl.transport :as t]
             [clojure.pprint]
+            [cider.nrepl.middleware.info :as cider-info]
+            [cider.nrepl.middleware.util.error-handling :refer [with-safe-transport]]
             [duratom.core :as duratom]))
 
 (comment "https://nrepl.org/nrepl/design/middleware.html"
@@ -12,16 +14,21 @@
 
 (def database (duratom/duratom :local-file {:file-path ".exprgarden.edn"}))
 
+(defn lookup-database [msg]
+  (get @database [(symbol (:ns msg)) (symbol (:sym msg))]))
+
 (defn record-and-eval [msg form]
   (println "recording :3")
   (spit "msg.edn" msg)
   (comment (spit "form.edn" form)
-           (def form (read-string (slurp "playground/form.edn"))))
-  
+           (def form (read-string (slurp "msg.edn"))))
+
   (def nss (find-ns (symbol (or (:ns msg) "user"))))
   
   (comment (def nss (find-ns 'clojure.string))
            (.getName nss))
+
+  "TODO use edamame edn parser/writer so that i can avoid #objects and other stuff like that"
 
   (binding [*ns* nss]
     (swap! database assoc [(.getName nss) (first form)] (map eval (rest form)))
@@ -34,7 +41,7 @@
   ;; ASSUMING THAT THERE IS NO DOCSTRING! ~= ASSUMING SIMPLEST DEFN FORM
   (assert (= (first form) 'defn))
   (def fname (second form))
-  (def namespace (symbol (or "exprgarden.core" #_(:ns msg))))
+  (def namespace (symbol (:ns msg)))
 
   (def binding-values (-> database deref (get [namespace fname])))
   (def arglist (nth form 2))
@@ -75,17 +82,28 @@
           :else
           (h msg))))
 
+
 (defn maybe-info [h msg]
-  (println "info intercepted")
-  (if false
-    (t/send (:transport msg)
-            (response-for msg))
+  (println (:sym msg))
+  
+  (def msg msg)
+  (comment (update (cider-info/format-response (cider-info/info msg))))
+  (if-let [values (lookup-database msg)]
+    (do
+      (println "wowwie" values)
+      (t/send (:transport msg)
+              (response-for msg (-> (cider-info/format-response (cider-info/info msg))
+                                    (assoc "status" "done")
+                                    (update "arglists-str"
+                                            str "\nexpgarden values: " (lookup-database msg))
+                                    (clojure.walk/keywordize-keys)))))
 
     (h msg)))
 
 (defn current-time
   [h]
   (fn [{:keys [op transport] :as msg}]
+    (println "op" op)
     (case op
       "eval" (maybe-record h msg)
       "info" (maybe-info h msg)

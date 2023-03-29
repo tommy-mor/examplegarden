@@ -1,5 +1,6 @@
 {:paths ["src"]
  :deps {expgarden/exprgarden {:local/root "../"}}
- :aliases {:repl {:main-opts
+ :aliases {:extra-deps {cider/cider-nrepl {:mvn/version "0.30.0"}}
+           :repl {:main-opts
                   ["-m" "nrepl.cmdline" "-p" "1667"
-                   "--middleware" "[exprgarden.core/current-time]"]}}}
+                   "--middleware" "[cider.nrepl/cider-middleware exprgarden.core/current-time]"]}}}
