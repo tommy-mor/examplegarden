@@ -89,14 +89,12 @@
   (def msg msg)
   (comment (update (cider-info/format-response (cider-info/info msg))))
   (if-let [values (lookup-database msg)]
-    (do
-      (println "wowwie" values)
-      (t/send (:transport msg)
-              (response-for msg (-> (cider-info/format-response (cider-info/info msg))
-                                    (assoc "status" "done")
-                                    (update "arglists-str"
-                                            str "\nexpgarden values: " (lookup-database msg))
-                                    (clojure.walk/keywordize-keys)))))
+    (t/send (:transport msg)
+            (response-for msg (-> (cider-info/format-response (cider-info/info msg))
+                                  (assoc "status" "done")
+                                  (update "arglists-str"
+                                          str "\nexpgarden values: " (lookup-database msg))
+                                  (clojure.walk/keywordize-keys))))
 
     (h msg)))
 
@@ -111,6 +109,7 @@
 
       
       (h msg))))
+
 
 (defn fubar [a b c]
   (+ a b (+ a (* b b))))
