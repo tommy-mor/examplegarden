@@ -10,3 +10,7 @@ command `cider-debug-defun-at-point'."
 							(cider--nrepl-pr-request-map))))
 
 
+
+;; put something like this in ur emacs.el (load-file "~/programming/examplegarden/bind.el")
+;; then bind a key to it, ~~ (define-key map "\C-x\C-e" 'cider-eval-recalling)
+  

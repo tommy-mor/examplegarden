@@ -5,11 +5,17 @@
             [clojure.pprint]
             [cider.nrepl.middleware.info :as cider-info]
             [cider.nrepl.middleware.util.error-handling :refer [with-safe-transport]]
-            [duratom.core :as duratom]))
+            [duratom.core :as duratom]
+            [clojure.data.json :as json]))
 
 (comment "https://nrepl.org/nrepl/design/middleware.html"
          "https://github.com/gfredericks/debug-repl/blob/master/src/com/gfredericks/debug_repl.clj"
          "https://github.com/clojure-emacs/cider-nrepl/blob/1fa95f24d45af4181e5c1ce14bfa5fa97ff3a065/src/cider/nrepl/middleware/debug.clj")
+
+(comment "TODO"
+         "ignore serializing some things, give warning"
+         "replace my slurp/spits in this repo with exprgardens"
+         "find a way to mark functions deeper in the stack, not just toplevel #record")
 
 
 (def database (duratom/duratom :local-file {:file-path ".exprgarden.edn"}))
@@ -18,6 +24,7 @@
   (get @database [(symbol (:ns msg)) (symbol (:sym msg))]))
 
 (defn record-and-eval [msg form]
+  (def form form)
   (println "recording :3")
   (spit "msg.edn" msg)
   (comment (spit "form.edn" form)
@@ -42,14 +49,14 @@
   (assert (= (first form) 'defn))
   (def fname (second form))
   (def namespace (symbol (:ns msg)))
-
   (def binding-values (-> database deref (get [namespace fname])))
   (def arglist (nth form 2))
   (def bindings (->> (interleave arglist binding-values)
                      vec))
   (def body (drop 3 form))
 
-  (eval `(let ~bindings ~@body )))
+  (binding [*ns* (create-ns namespace)]
+    (eval `(let ~bindings ~@body ))))
 
 (defn has-tag [tag-symbol msg]
   (let [found? (atom false)
@@ -114,8 +121,14 @@
 (defn fubar [a b c]
   (+ a b (+ a (* b b))))
 
+(defn bar [epic]
+  (clojure.string/join ", epic, " epic))
+
+(defn process-catfact [raw]
+  (json/read-str raw))
+
 (comment
-  (slurp "https://google.com"))
+  (process-catfact (slurp "https://catfact.ninja/fact")))
 
 (comment
   (fubar 4 2 1)
