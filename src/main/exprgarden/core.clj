@@ -4,11 +4,10 @@
             [nrepl.middleware :as mw]
             [nrepl.transport :as t]
             [clojure.pprint]
+            
             [cider.nrepl.middleware.info :as cider-info]
             [cider.nrepl.middleware.util.error-handling :refer [with-safe-transport]]
-            [clojure.data.json :as json]
-
-            [edamame.core :as ed :refer [parse-string]]))
+            [clojure.data.json :as json]))
 
 (comment "https://nrepl.org/nrepl/design/middleware.html"
          "https://github.com/gfredericks/debug-repl/blob/master/src/com/gfredericks/debug_repl.clj"
@@ -17,6 +16,7 @@
 (comment "TODO"
          "use edamame"
          "ignore serializing some things, give warning"
+         "parse function definitions using clojure spec"
          "find a way to mark functions deeper in the stack, not just toplevel #record"
          "M-N bind that changes form to include not entire body, but chops off the body of the function after given bind"
 
