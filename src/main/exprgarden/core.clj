@@ -14,7 +14,6 @@
 
 (comment "TODO"
          "ignore serializing some things, give warning"
-         "replace my slurp/spits in this repo with exprgardens"
          "find a way to mark functions deeper in the stack, not just toplevel #record")
 
 
@@ -25,11 +24,6 @@
 
 (defn record-and-eval [msg form]
   (def form form)
-  (println "recording :3")
-  (spit "msg.edn" msg)
-  (comment (spit "form.edn" form)
-           (def form (read-string (slurp "msg.edn"))))
-
   (def nss (find-ns (symbol (or (:ns msg) "user"))))
   
   (comment (def nss (find-ns 'clojure.string))
@@ -41,21 +35,18 @@
     (swap! database assoc [(.getName nss) (first form)] (map eval (rest form)))
     (eval form)))
 
-(defn remember-and-eval [msg form]
-  (println "remembering")
-  (spit "form.edn" form)
-  (def form (read-string (slurp "form.edn")))
+(defn recall-and-eval [msg form]
   ;; ASSUMING THAT THERE IS NO DOCSTRING! ~= ASSUMING SIMPLEST DEFN FORM
   (assert (= (first form) 'defn))
   (def fname (second form))
-  (def namespace (symbol (:ns msg)))
-  (def binding-values (-> database deref (get [namespace fname])))
+  (def nss (symbol (:ns msg)))
+  (def binding-values (-> database deref (get [nss fname])))
   (def arglist (nth form 2))
   (def bindings (->> (interleave arglist binding-values)
                      vec))
   (def body (drop 3 form))
 
-  (binding [*ns* (create-ns namespace)]
+  (binding [*ns* (create-ns nss)]
     (eval `(let ~bindings ~@body ))))
 
 (defn has-tag [tag-symbol msg]
@@ -84,7 +75,7 @@
           (t/send (:transport msg)
                   (response-for msg
                                 :status :done
-                                :value (pr-str (remember-and-eval msg form))))
+                                :value (pr-str (recall-and-eval msg form))))
           
           :else
           (h msg))))
@@ -93,8 +84,8 @@
 (defn maybe-info [h msg]
   (println (:sym msg))
   
-  (def msg msg)
   (comment (update (cider-info/format-response (cider-info/info msg))))
+  
   (if-let [values (lookup-database msg)]
     (t/send (:transport msg)
             (response-for msg (-> (cider-info/format-response (cider-info/info msg))
@@ -105,7 +96,7 @@
 
     (h msg)))
 
-(defn current-time
+(defn examplegarden-hook
   [h]
   (fn [{:keys [op transport] :as msg}]
     (println "op" op)
@@ -136,6 +127,6 @@
   (+ 3 3))
 
 (mw/set-descriptor!
- #'current-time
+ #'examplegarden-hook
  {:expects #{"eval" "clone"}})
 
