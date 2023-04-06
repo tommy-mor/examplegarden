@@ -1,39 +1,48 @@
 (ns exprgarden.core
-  (:require [nrepl.misc :refer [response-for]  :as misc]
+  (:require [exprgarden.db :as db]
+            [nrepl.misc :refer [response-for]  :as misc]
             [nrepl.middleware :as mw]
             [nrepl.transport :as t]
             [clojure.pprint]
             [cider.nrepl.middleware.info :as cider-info]
             [cider.nrepl.middleware.util.error-handling :refer [with-safe-transport]]
-            [duratom.core :as duratom]
-            [clojure.data.json :as json]))
+            [clojure.data.json :as json]
+
+            [edamame.core :as ed :refer [parse-string]]))
 
 (comment "https://nrepl.org/nrepl/design/middleware.html"
          "https://github.com/gfredericks/debug-repl/blob/master/src/com/gfredericks/debug_repl.clj"
          "https://github.com/clojure-emacs/cider-nrepl/blob/1fa95f24d45af4181e5c1ce14bfa5fa97ff3a065/src/cider/nrepl/middleware/debug.clj")
 
 (comment "TODO"
+         "use edamame"
          "ignore serializing some things, give warning"
-         "find a way to mark functions deeper in the stack, not just toplevel #record")
+         "find a way to mark functions deeper in the stack, not just toplevel #record"
+         "M-N bind that changes form to include not entire body, but chops off the body of the function after given bind"
+
+         "electric ui to chose threads, and vis data")
 
 
-(def database (duratom/duratom :local-file {:file-path ".exprgarden.edn"}))
+(def database (db/ednstore {:file-path ".exprgarden.edn"}))
 
 (defn lookup-database [msg]
   (get @database [(symbol (:ns msg)) (symbol (:sym msg))]))
 
 (defn record-and-eval [msg form]
+  (def msg msg)
   (def form form)
   (def nss (find-ns (symbol (or (:ns msg) "user"))))
-  
-  (comment (def nss (find-ns 'clojure.string))
-           (.getName nss))
 
+  (comment (parse-string (:code msg) {:all true
+                                      :readers {'record (fn [v] (list 'record v))}}))
+  
   "TODO use edamame edn parser/writer so that i can avoid #objects and other stuff like that"
 
   (binding [*ns* nss]
     (swap! database assoc [(.getName nss) (first form)] (map eval (rest form)))
     (eval form)))
+
+(comment (record-and-eval msg form))
 
 (defn recall-and-eval [msg form]
   ;; ASSUMING THAT THERE IS NO DOCSTRING! ~= ASSUMING SIMPLEST DEFN FORM
@@ -63,6 +72,7 @@
 
 (defn maybe-record [h msg]
   (clojure.pprint/pprint (dissoc msg :transport :nrepl.middleware.print/print-fn))
+  
   (let [{record? :has-tag?} (has-tag 'record msg)
         {recall? :has-tag? form :form} (has-tag 'recall msg)]
     
