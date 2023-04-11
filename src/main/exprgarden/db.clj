@@ -27,10 +27,15 @@
     (read-file local-file)))
 
 (comment
+  (zp/zprint exprgarden.core/msg))
+
+(comment
   (def x (new EdnStore ".test.edn"))
   (swap! x assoc 3 4)
   (-> x deref))
 
 (defn ednstore [{:keys [file-path]}]
   (duratom/duratom :local-file {:file-path file-path}))
+
+
 

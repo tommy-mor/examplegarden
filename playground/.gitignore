@@ -1,0 +1,4 @@
+.shadow-cljs/
+*.js
+*.js.map
+resources/public/js

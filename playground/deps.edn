@@ -1,6 +1,19 @@
-{:paths ["src"]
- :deps {expgarden/exprgarden {:local/root "../"}}
- :aliases {:extra-deps {cider/cider-nrepl {:mvn/version "0.30.0"}}
+{:paths ["src" "resources"]
+ :deps {expgarden/exprgarden {:local/root "../"}
+        
+        com.hyperfiddle/electric {:mvn/version "v2-alpha-263-g89da9d11"}
+        info.sunng/ring-jetty9-adapter
+        {:mvn/version "0.17.7"
+         :exclusions [org.slf4j/slf4j-api info.sunng/ring-jetty9-adapter-http3]}
+                                        ; no need
+        org.clojure/clojure {:mvn/version "1.11.1"}
+        org.clojure/clojurescript {:mvn/version "1.11.60"}
+        org.clojure/tools.logging {:mvn/version "1.2.4"}
+        ch.qos.logback/logback-classic {:mvn/version "1.2.11"}}
+ 
+ :aliases {:extra-deps {binaryage/devtools {:mvn/version "1.0.6"}
+                        thheller/shadow-cljs {:mvn/version "2.20.1"}
+                        cider/cider-nrepl {:mvn/version "0.30.0"}}
            :repl {:main-opts
                   ["-m" "nrepl.cmdline" "-p" "1667"
                    "--middleware" "[cider.nrepl/cider-middleware exprgarden.core/examplegarden-hook]"]}}}
