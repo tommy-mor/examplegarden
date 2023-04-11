@@ -14,13 +14,15 @@
          "https://github.com/clojure-emacs/cider-nrepl/blob/1fa95f24d45af4181e5c1ce14bfa5fa97ff3a065/src/cider/nrepl/middleware/debug.clj")
 
 (comment "TODO"
-         "use edamame"
-         "ignore serializing some things, give warning"
+         "ignore serializing some things, give warning (clojure.walk test of round-trip property)"
          "parse function definitions using clojure spec"
          "find a way to mark functions deeper in the stack, not just toplevel #record"
          "M-N bind that changes form to include not entire body, but chops off the body of the function after given bind"
 
-         "electric ui to chose threads, and vis data")
+         "electric ui to chose threads, and vis data"
+         "  - electric ui show examples, live update when it changes.."
+         "  - electric ui buttons to switch between which thread to use"
+         "  - electric ui send to openai/copilot")
 
 
 (def database (db/ednstore {:file-path ".exprgarden.edn"}))
