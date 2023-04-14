@@ -47,18 +47,22 @@
 (comment (record-and-eval msg form))
 
 (defn recall-and-eval [msg form]
-  ;; ASSUMING THAT THERE IS NO DOCSTRING! ~= ASSUMING SIMPLEST DEFN FORM
-  (assert (= (first form) 'defn))
-  (def fname (second form))
-  (def nss (symbol (:ns msg)))
-  (def binding-values (-> database deref (get [nss fname])))
-  (def arglist (nth form 2))
-  (def bindings (->> (interleave arglist binding-values)
-                     vec))
-  (def body (drop 3 form))
+  (let [form (if (= (first form) 'exprgarden.core/record)
+               (second form)
+               form)]
+    
+    ;; ASSUMING THAT THERE IS NO DOCSTRING! ~= ASSUMING SIMPLEST DEFN FORM
+    (assert (= (first form) 'defn))
+    (def fname (second form))
+    (def nss (symbol (:ns msg)))
+    (def binding-values (-> database deref (get [nss fname])))
+    (def arglist (nth form 2))
+    (def bindings (->> (interleave arglist binding-values)
+                       vec))
+    (def body (drop 3 form))
 
-  (binding [*ns* (create-ns nss)]
-    (eval `(let ~bindings ~@body ))))
+    (binding [*ns* (create-ns nss)]
+      (eval `(let ~bindings ~@body )))))
 
 (defn has-tag [tag-symbol msg]
   (let [found? (atom false)
@@ -120,9 +124,27 @@
       
       (h msg))))
 
+(defn bug [nme ns argvals]
+  (swap! database assoc [(.getName ns) nme] argvals))
 
-(defn fubar [a b c]
-  (+ a b (+ a (* b b))))
+(defmacro record [[dfn nme oldargs & body]]
+  (assert (= dfn 'defn) )
+  (let [newargs (vec (map (fn [_] (gensym)) oldargs))
+        newlet (vec (interleave oldargs newargs))]
+    `(defn ~nme ~newargs
+       (bug '~nme ~*ns* ~newargs)
+       (let ~newlet
+         ~@body))))
+
+(exprgarden.core/record (defn fubar [a b c]
+                          (+ a b (+ a (* b b)))))
+
+(defn test [a]
+  (fubar a a a))
+
+(test 4)
+
+(fubar 3 3 3)
 
 (defn bar [epic]
   (clojure.string/join ", epic, " epic))
