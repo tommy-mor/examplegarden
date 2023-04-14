@@ -16,7 +16,6 @@
 (comment "TODO"
          "ignore serializing some things, give warning (clojure.walk test of round-trip property)"
          "parse function definitions using clojure spec"
-         "find a way to mark functions deeper in the stack, not just toplevel #record"
          "M-N bind that changes form to include not entire body, but chops off the body of the function after given bind"
 
          "electric ui to chose threads, and vis data"
@@ -141,10 +140,6 @@
 
 (defn test [a]
   (fubar a a a))
-
-(test 4)
-
-(fubar 3 3 3)
 
 (defn bar [epic]
   (clojure.string/join ", epic, " epic))
