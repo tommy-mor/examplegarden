@@ -141,6 +141,8 @@
 (defn test [a]
   (fubar a a a))
 
+(test 10)
+
 (defn bar [epic]
   (clojure.string/join ", epic, " epic))
 
@@ -148,7 +150,7 @@
   (json/read-str raw))
 
 (comment
-  (process-catfact (slurp "https://catfact.ninja/fact")))
+  #record (process-catfact (slurp "https://catfact.ninja/fact")))
 
 (comment
   (fubar 4 2 1)
