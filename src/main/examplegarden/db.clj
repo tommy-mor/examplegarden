@@ -1,4 +1,4 @@
-(ns exprgarden.db
+(ns examplegarden.db
   (:require [duratom.core :as duratom]
             [clojure.java.io :as jio]
             [edamame.core :as ed :refer [parse-string]]
