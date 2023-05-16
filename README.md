@@ -1,59 +1,79 @@
-Intro
-=====
+examplegarden
+=======
 
-My project is to do with exprgarden. Exprgraden asks the question: what if we used several (~~ 1-3) canonical examples of a type, rather than the mathematical description of the general type ("i am a string", "jdbc:postgres/arostienarsoitne", "i am, a row, in a csv file" VS java.util.String)
-
-My project is to explore the design space of this question using clojure, hopefully getting a useful tool that I will be able to use.
+TLDR: store ~1-3 canonical examples of function arguments in git repo next to code, to replace/surpass a type system. implemented as an nREPL middleware.
 
 
-Milestones
-=====
+> In hindsight, so much of what we hype up as “exploratory programming” in the REPL is really just coping with the lack of useful type information.
+> -- [this post](https://discuss.ocaml.org/t/whats-your-development-workflow/10358/8)
 
-There are several milestones of usefulness that I want to add.
-  1. (COMPLETED). middleware integration to cider, way to store/recall only function arguments using #record #remember reader tags.
-  2. (takes ~30m). replace #remember with cider protocol extension, bind that to key in emacs.
-  3. (takes ~2hr?). hook into cider protocol for hover tooltip, show examples there.
+> It's much easier for me to generalize from the concrete than conctretize from the general.
+> -- a professor once told me
 
-  5. expgarden/flow: examples flow deeper into functions, you can hover over the names of variables in let bindings.
-
-  6. exgrgarden/checkpoint: not everything should be stored. many/most of the things can be calculated on the fly. The interface should allow you this control.
-
-  6. exprgarden/branch: your data thread/vine follows the happy path. you have an unhappy path somewhere you want to test. somehow you branch/fork/force a change in your data example to explore the sad path.
-
-  7. exprgarden/obsolete: when you change something, stored data can possibly become obsolete. but if its a lovingly maintained branch, it would be mean to delete it automatically. How to handle dead branches. Handling is easy=delete or reattach. The hard part is visualizing/knowing about the dead branches.
-
-  7. expgarden/gui: there is a lot of data. there are branches, multiple overlapping branches, some of them dead. some of the branches are saved in database, some of them are computed on the fly. All of this may not fit nicely into tooltips and existin editor features. It may be good to make a user interface to see this info. There is also several precedents/prior works in the space of repl-attached data visualizers for clojure. Also gui will have buttons/interface for controlling/gardening/threads.
-
-  10. exprgarden/turbo: expgarden/flow tightens the feedback loop from writing expression to seeing its value in context. What if we tighten that so tightly, we zip it up. What if as soon as you save the file/release a key, you see the value propogated.
-
-  11. exprgarden/spec: This data can be used to genrate clojure specs (predicate based data description language). That would be cool.
-
-  12. exprgarden/check, exprgarden/coverage: This data can be used to "typecheck" the code, (in clojure that means make sure that everything runs without giving exception). Can also produce coverage data about repo.
-
-  13. exprgarden/factory: How to handle data that is not serializable. In most clojure codebases, this is only the database connection. I figure that can be done using a cached factory method somewhere in repo that exprgarden knows about.
+> The values of a program deserve to be tracked in git, not just the source of a program.
+> -- my opinion
 
 
-Questions
-=====
+motivation
+===
 
-  1. Describe the goals of your project: are you seeking to develop new functionality for an existing application, develop a greenfield application, or evaluate some existing system?
+I have found myself frequently using the "inline def" hack for debugging/interactive development. It may be "too obvious to describe", but [here](https://blog.michielborkent.nl/inline-def-debugging.html) and [here](https://cognitect.com/blog/2017/6/5/repl-debugging-no-stacktrace-required) are good blog posts describing it.
 
-Greenfield application.
+I find this pattern useful for debugging, but also for just development. I inline def all the arguments to a function, run the function (or a different function that calls it) from a Rich comment block or a [rcf test block](https://github.com/hyperfiddle/rcf). Now that all the arg names are defined, I can send the body of the function to the repl as soon as I make a change. I see the values flow through my expressions milliseconds after writing them.
 
-  2. What will be the concrete deliverables that you create?  If there will be an evaluation aspect, what metrics will you capture?  What technologies will you use?
+There are some problems with this:
+  1. You have to manually write ``(def arg1 arg1)(def arg2 arg2)...`` for every function. This gets annoying quick.
+  2. You have to delete those before commiting or risk smelling up your code.
+  3. The values you used to write the body of the function are lost to time. Developers in the future must recreate this situation manually to hack on the function body.
 
-Clojure repo/cider extension.
+high level solution
+====
 
-  3.  What are the major risks that you see in the project that you are proposing? Do you have contingency plans in case some key aspect of the project doesn’t work out?
-
-I don't see any major risks. I think it is very likely that I will produce a tool that I am able to use daily. I don't think I will be able to meet the deeper milestones in 6 weeks though. I think I will get up to milestone 5 at the very least.
-
-
-  4. (If a team project): What are the high level roles and responsibilities of each team member? It is often helpful to have some notion of task ownership, rater than a “we are all responsible for everything”
-
-N/A
+Here is how examplegarden lubricates (tightens up the feedback loop of) the inline def pattern:
+  * Store the canonical values to selected function arguments data literals in a ``.examplegarden.edn`` file
+  * When hacking on the body, pressing a keybind will evaluate the body in terms of saved values.
 
 
-5.  New compared to preliminary proposal: What are the high-level tasks that you will need to complete in order to accomplish this project? By when do you plan to accomplish each? Note that you will need to provide a status update on your project on Mar 28 - it may be wise to ensure that any particularly high-risk tasks are scheduled to be completed before the status update, such that we can use that checkpoint to discuss alternatives as needed.
+This speeds up my normal inline def development pattern. It also has these additional advantages:
+  1. Examples show up in function tooltip, so you don't have to "cope with lack of useful type information." You have something better: an actual piece of data.
+  2. Other developers (you in the future?) have access to the examples/evaluation context, not just the transient repl of the person writing the inline diffs.
+  3. Changes to function inputs are documented by git diff.
+  4. The "time to productive change" is much lowered for new team members. Instead of rigging up an entire web app and clicking the button on a form to get the right value in the inline def, you can just immediately start writing a new handler with the correct context of having pressed that button.
+  5. You could automatically generate specs using these organically accreting examples.
+  6. You could run examples through their functions as low impact, but free tests.
 
-I want to finish 1,2,3,5 by end of first week after break. From there I will readjust timing.
+solution details
+====
+``examplegarden`` is implemented as an nrepl middleware. ``deps.edn``:
+```clojure
+{:deps {expgarden/exprgarden {:local/root "../examplegarden/"}}
+ :aliases {:repl {:main-opts ["-m" "nrepl.cmdline" "--middleware"
+ 		              "[cider.nrepl/cider-middleware examplegarden.core/examplegarden-hook]"]}}}
+
+```
+
+During development, there are two ways to store an example.
+  1. Call the function you intend to record, but with a `#record` reader tag: 
+```clojure
+ #record (function-i-am-working-on val1 val2 val3)
+ ```
+  3. Wrap your function in this globally qualified macro:
+```clojure
+(examplegarden.core/record (defn function-i-am-working-on [{:keys [a b c]} val2 val3] ...))
+```
+The next call to the instrumented function will be recorded in the .examplegarden.edn file.
+
+Note that every non-serializable value will be replaced by nil. Any time this happens, a warning will print to stdout.
+
+There is one way to recall the examples:
+```clojure
+#recall (defn function-i-am-working-on ...)
+```
+This will run the function body using the context from ``.examplegarden.edn``.
+I bind a key to do this. The emacs/cider example code is in ``./bind.el``
+
+
+downsides
+====
+
+1. only serializable values are supported. This has been annoying for the database connection object. This has forced me to separate the sql queries and data manipulation pure functions from eachother, and my code has benefitted. Now my code passes the color coding test described [here](https://youtu.be/WtdegIqQbrg?t=983).
