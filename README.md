@@ -46,7 +46,7 @@ solution details
 ====
 ``examplegarden`` is implemented as an nrepl middleware. ``deps.edn``:
 ```clojure
-{:deps {expgarden/exprgarden {:local/root "../examplegarden/"}}
+{:deps {examplegarden/examplegarden {:local/root "../examplegarden/"}}
  :aliases {:repl {:main-opts ["-m" "nrepl.cmdline" "--middleware"
  		              "[cider.nrepl/cider-middleware examplegarden.core/examplegarden-hook]"]}}}
 

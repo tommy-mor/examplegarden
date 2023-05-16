@@ -1,5 +1,5 @@
 {:paths ["src" "resources"]
- :deps {expgarden/exprgarden {:local/root "../"}
+ :deps {examplegarden/examplegarden {:local/root "../"}
         
         com.hyperfiddle/electric {:mvn/version "v2-alpha-263-g89da9d11"}
         info.sunng/ring-jetty9-adapter
@@ -16,4 +16,4 @@
                         cider/cider-nrepl {:mvn/version "0.30.0"}}
            :repl {:main-opts
                   ["-m" "nrepl.cmdline" "-p" "1667"
-                   "--middleware" "[cider.nrepl/cider-middleware exprgarden.core/examplegarden-hook]"]}}}
+                   "--middleware" "[cider.nrepl/cider-middleware examplegarden.core/examplegarden-hook]"]}}}

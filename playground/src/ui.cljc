@@ -3,7 +3,7 @@
             [hyperfiddle.electric-dom2 :as dom]
             [hyperfiddle.electric-ui4 :as ui]))
 
-(e/def database (e/server (e/watch exprgarden.core/database)))
+(e/def database (e/server (e/watch examplegarden.core/database)))
 
 (e/defn Todo-list []
   (e/client
@@ -14,5 +14,5 @@
                          (dom/pre (dom/text (contrib.str/pprint-str example)))
                          (ui/button (e/fn []
                                       (e/server
-                                       (swap! exprgarden.core/database dissoc (first example))))
+                                       (swap! examplegarden.core/database dissoc (first example))))
                                     (dom/text "delete"))))))))

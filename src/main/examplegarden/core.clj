@@ -1,5 +1,5 @@
 (ns examplegarden.core
-  (:require [exprgarden.db :as db]
+  (:require [examplegarden.db :as db]
             [nrepl.misc :refer [response-for]  :as misc]
             [nrepl.middleware :as mw]
             [nrepl.transport :as t]
@@ -26,7 +26,7 @@
          "make the store store types in transit, so you can extend the datatypes at the bottom")
 
 
-(def database (db/ednstore {:file-path ".exprgarden.edn"}))
+(def database (db/ednstore {:file-path ".examplegarden.edn"}))
 
 (defn lookup-database [msg]
   (get @database [(symbol (:ns msg)) (symbol (:sym msg))]))
@@ -90,7 +90,7 @@
     {:form form :has-tag? @found?}))
 
 (defn maybe-record [h msg]
-  (clojure.pprint/pprint (dissoc msg :transport :nrepl.middleware.print/print-fn))
+  (comment (clojure.pprint/pprint (dissoc msg :transport :nrepl.middleware.print/print-fn)))
   
   (let [{record? :has-tag?} (has-tag 'record msg)
         {recall? :has-tag? form :form} (has-tag 'recall msg)]
@@ -149,13 +149,10 @@
        (let ~newlet
          ~@body))))
 
-(exprgarden.core/record (defn fubar [a b c]
+(examplegarden.core/record (defn fubar [a b c]
                            (+ a b (+ a (* b b)))))
 
-(comment
-  (macroexpand))
-
-(defn test [a]
+(defn testfn [a]
   (fubar (inc a) a a))
 
 (defn bar [epic]
@@ -168,23 +165,11 @@
   #_(json/read-str raw)
   (json/read-str raw :key-fn keyword))
 
-(bar [1 2  3 4])
-
-
-
-
 (comment
-  (defn process-catfact [RAND_1]
-    (bug [procsces catfact] [RAND_1])
-    
-    (let [raw RAND_1]
-      (json/read-str raw))))
-
-(comment
+  
   (process-catfact (slurp "https://catfact.ninja/fact"))
-  )
+  (bar [1 2  3 4])
 
-(comment
   (fubar 3 2 1)
 
   (+ 3 3))
